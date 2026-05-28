@@ -1,5 +1,7 @@
 use super::cycle::{execute_click_cycle, ClickCycleKind, ClickCyclePlan};
 use super::worker::{sleep_interruptible, RunControl};
+#[cfg(not(target_os = "windows"))]
+use std::process::Command;
 use std::time::Duration;
 use std::time::Instant;
 
@@ -86,7 +88,24 @@ pub fn current_cursor_position() -> Option<(i32, i32)> {
 
 #[cfg(not(target_os = "windows"))]
 pub fn current_cursor_position() -> Option<(i32, i32)> {
-    None
+    let output = Command::new("xdotool")
+        .args(["getmouselocation", "--shell"])
+        .output()
+        .ok()?;
+    if !output.status.success() {
+        return None;
+    }
+    let stdout = String::from_utf8(output.stdout).ok()?;
+    let mut x = None;
+    let mut y = None;
+    for line in stdout.lines() {
+        if let Some(value) = line.strip_prefix("X=") {
+            x = value.parse::<i32>().ok();
+        } else if let Some(value) = line.strip_prefix("Y=") {
+            y = value.parse::<i32>().ok();
+        }
+    }
+    Some((x?, y?))
 }
 
 #[cfg(target_os = "windows")]
@@ -180,7 +199,16 @@ pub fn move_mouse(target_x: i32, target_y: i32) {
 
 #[cfg(not(target_os = "windows"))]
 #[inline]
-pub fn move_mouse(_target_x: i32, _target_y: i32) {}
+pub fn move_mouse(target_x: i32, target_y: i32) {
+    let _ = Command::new("xdotool")
+        .args([
+            "mousemove",
+            "--sync",
+            &target_x.to_string(),
+            &target_y.to_string(),
+        ])
+        .status();
+}
 
 #[cfg(target_os = "windows")]
 #[inline]
@@ -242,7 +270,21 @@ pub fn send_batch(down: u32, up: u32, n: usize) {
 }
 
 #[cfg(not(target_os = "windows"))]
-pub fn send_batch(_down: u32, _up: u32, _n: usize) {}
+pub fn send_batch(down: u32, _up: u32, n: usize) {
+    if n == 0 {
+        return;
+    }
+    let _ = Command::new("xdotool")
+        .args([
+            "click",
+            "--repeat",
+            &n.to_string(),
+            "--delay",
+            "0",
+            &down.to_string(),
+        ])
+        .status();
+}
 
 #[cfg(target_os = "windows")]
 pub fn send_clicks(down: u32, up: u32, count: usize, plan: ClickCyclePlan, control: &RunControl) {
@@ -273,8 +315,8 @@ pub fn send_clicks(down: u32, up: u32, count: usize, plan: ClickCyclePlan, contr
 
 #[cfg(not(target_os = "windows"))]
 pub fn send_clicks(
-    _down: u32,
-    _up: u32,
+    down: u32,
+    up: u32,
     count: usize,
     plan: ClickCyclePlan,
     control: &RunControl,
@@ -286,11 +328,24 @@ pub fn send_clicks(
     let is_active = || control.is_active();
     let mut sleep_for = |duration| sleep_interruptible(duration, control);
 
+    if plan.kind == ClickCycleKind::Single && count > 1 && plan.first_hold_ms == 0 {
+        send_batch(down, up, count);
+        return;
+    }
+
     for _ in 0..count {
         if !execute_click_cycle(
             plan,
-            &mut || {},
-            &mut || {},
+            &mut || {
+                let _ = Command::new("xdotool")
+                    .args(["mousedown", &down.to_string()])
+                    .status();
+            },
+            &mut || {
+                let _ = Command::new("xdotool")
+                    .args(["mouseup", &up.to_string()])
+                    .status();
+            },
             &mut sleep_for,
             &is_active,
         ) {
@@ -311,8 +366,12 @@ pub fn get_button_flags(button: i32) -> (u32, u32) {
 
 #[cfg(not(target_os = "windows"))]
 #[inline]
-pub fn get_button_flags(_button: i32) -> (u32, u32) {
-    (0, 0)
+pub fn get_button_flags(button: i32) -> (u32, u32) {
+    match button {
+        2 => (3, 3),
+        3 => (2, 2),
+        _ => (1, 1),
+    }
 }
 
 #[inline]

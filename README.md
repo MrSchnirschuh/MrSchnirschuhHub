@@ -77,7 +77,7 @@ Unsigned GitHub-downloaded Windows installers can still show a SmartScreen warni
 
 ## Building From Source
 
-This project is currently Windows-first. The maintained desktop build path is the Rust `x86_64-pc-windows-msvc` toolchain plus Node.js.
+This project is currently Windows-first, but it can now also be run from source on Linux with the system dependencies below.
 
 Requirements:
 - Node.js 20 or newer
@@ -86,9 +86,9 @@ Requirements:
 
 If you run Rust checks on Linux (for example in a local dev shell), install GTK/GLib development packages first so `pkg-config` can resolve `glib-2.0` and `gobject-2.0`:
 
-- Debian/Ubuntu: `sudo apt install pkg-config libglib2.0-dev libgtk-3-dev`
-- Fedora: `sudo dnf install pkgconf-pkg-config glib2-devel gtk3-devel`
-- Arch: `sudo pacman -S pkgconf glib2 gtk3`
+- Debian/Ubuntu: `sudo apt install pkg-config libglib2.0-dev libgtk-3-dev libwebkit2gtk-4.1-dev libjavascriptcoregtk-4.1-dev libsoup-3.0-dev xdotool`
+- Fedora: `sudo dnf install pkgconf-pkg-config glib2-devel gtk3-devel webkit2gtk4.1-devel javascriptcoregtk4.1-devel libsoup3-devel xdotool`
+- Arch: `sudo pacman -S pkgconf glib2 gtk3 webkit2gtk libsoup xdotool`
 
 Setup:
 ```powershell
@@ -116,6 +116,10 @@ cargo test --manifest-path src-tauri/Cargo.toml
 ```
 
 CI runs frontend checks on Ubuntu and Rust checks on Windows (`windows-latest`), so a Linux failure for missing `glib`/`gobject` system packages usually indicates local machine setup, not necessarily a Rust code regression.
+
+Current Linux limitations:
+- Windows registry autostart is unavailable on Linux.
+- Sequence-point picker and custom stop-zone picker are currently Windows-only.
 
 The built Windows installer is written to `src-tauri/target/release/bundle/nsis/`.
 

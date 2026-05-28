@@ -226,6 +226,7 @@ fn system_double_click_gap_ms() -> u32 {
     #[cfg(target_os = "windows")]
     let system_timeout_ms = unsafe { GetDoubleClickTime() };
     #[cfg(not(target_os = "windows"))]
+    // 500ms matches the common desktop default; we apply the same 0.9 factor below.
     let system_timeout_ms = 500u32;
     ((system_timeout_ms as f64) * 0.9).floor() as u32
 }

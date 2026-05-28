@@ -1,4 +1,8 @@
-use super::cycle::{execute_click_cycle, ClickCycleKind, ClickCyclePlan};
+use super::cycle::{execute_click_cycle, ClickCyclePlan};
+#[cfg(target_os = "windows")]
+use super::cycle::ClickCycleKind;
+#[cfg(not(target_os = "windows"))]
+use std::process::Command;
 #[cfg(target_os = "windows")]
 use windows_sys::Win32::UI::Input::KeyboardAndMouse::{
     GetKeyState, MapVirtualKeyW, SendInput, INPUT, INPUT_KEYBOARD, KEYBDINPUT,
@@ -146,9 +150,9 @@ pub fn send_key_presses(
 
 #[cfg(not(target_os = "windows"))]
 pub fn send_key_presses(
-    _vk: u16,
+    vk: u16,
     count: usize,
-    _uppercase: bool,
+    uppercase: bool,
     plan: ClickCyclePlan,
     control: &RunControl,
 ) {
@@ -158,10 +162,58 @@ pub fn send_key_presses(
 
     let is_active = || control.is_active();
     let mut sleep_for = |duration| sleep_interruptible(duration, control);
+    let key = non_windows_key_name(vk, uppercase);
 
     for _ in 0..count {
-        if !execute_click_cycle(plan, &mut || {}, &mut || {}, &mut sleep_for, &is_active) {
+        if !execute_click_cycle(
+            plan,
+            &mut || {
+                if let Some(ref key) = key {
+                    let _ = Command::new("xdotool").args(["keydown", key]).status();
+                }
+            },
+            &mut || {
+                if let Some(ref key) = key {
+                    let _ = Command::new("xdotool").args(["keyup", key]).status();
+                }
+            },
+            &mut sleep_for,
+            &is_active,
+        ) {
             return;
         }
+    }
+}
+
+#[cfg(not(target_os = "windows"))]
+fn non_windows_key_name(vk: u16, uppercase: bool) -> Option<String> {
+    if (b'A' as u16..=b'Z' as u16).contains(&vk) {
+        let mut ch = char::from_u32(vk as u32)?;
+        if !uppercase {
+            ch = ch.to_ascii_lowercase();
+        }
+        return Some(ch.to_string());
+    }
+    if (b'0' as u16..=b'9' as u16).contains(&vk) {
+        return Some(char::from_u32(vk as u32)?.to_string());
+    }
+    match vk as i32 {
+        0x20 => Some(String::from("space")),
+        0x09 => Some(String::from("Tab")),
+        0x0D => Some(String::from("Return")),
+        0x1B => Some(String::from("Escape")),
+        0x08 => Some(String::from("BackSpace")),
+        0x2E => Some(String::from("Delete")),
+        0x2D => Some(String::from("Insert")),
+        0x24 => Some(String::from("Home")),
+        0x23 => Some(String::from("End")),
+        0x21 => Some(String::from("Prior")),
+        0x22 => Some(String::from("Next")),
+        0x25 => Some(String::from("Left")),
+        0x27 => Some(String::from("Right")),
+        0x26 => Some(String::from("Up")),
+        0x28 => Some(String::from("Down")),
+        code @ 0x70..=0x7B => Some(format!("F{}", code - 0x6F)),
+        _ => None,
     }
 }

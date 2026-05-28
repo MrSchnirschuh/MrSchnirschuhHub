@@ -42,8 +42,7 @@ pub fn set_autostart_enabled(enabled: bool) -> io::Result<()> {
 }
 
 #[cfg(not(target_os = "windows"))]
-pub fn set_autostart_enabled(enabled: bool) -> io::Result<()> {
-    let _ = enabled;
+pub fn set_autostart_enabled(_enabled: bool) -> io::Result<()> {
     Err(io::Error::new(
         io::ErrorKind::Unsupported,
         "Autostart is currently only supported on Windows",
