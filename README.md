@@ -84,6 +84,12 @@ Requirements:
 - Rust via `rustup`
 - Microsoft C++ Build Tools / Visual Studio Build Tools
 
+If you run Rust checks on Linux (for example in a local dev shell), install GTK/GLib development packages first so `pkg-config` can resolve `glib-2.0` and `gobject-2.0`:
+
+- Debian/Ubuntu: `sudo apt install pkg-config libglib2.0-dev libgtk-3-dev`
+- Fedora: `sudo dnf install pkgconf-pkg-config glib2-devel gtk3-devel`
+- Arch: `sudo pacman -S pkgconf glib2 gtk3`
+
 Setup:
 ```powershell
 git clone https://github.com/Blur009/Blur-AutoClicker.git
@@ -108,6 +114,8 @@ npm run lint
 npm run frontend:build
 cargo test --manifest-path src-tauri/Cargo.toml
 ```
+
+CI runs frontend checks on Ubuntu and Rust checks on Windows (`windows-latest`), so a Linux failure for missing `glib`/`gobject` system packages usually indicates local machine setup, not necessarily a Rust code regression.
 
 The built Windows installer is written to `src-tauri/target/release/bundle/nsis/`.
 
