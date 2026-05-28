@@ -10,6 +10,7 @@ use crate::ClickerSettings;
 use crate::ClickerState;
 use crate::ClickerStatusPayload;
 use crate::STATUS_EVENT;
+#[cfg(target_os = "windows")]
 use windows_sys::Win32::UI::Input::KeyboardAndMouse::GetDoubleClickTime;
 
 use super::cycle::ClickCyclePlan;
@@ -20,6 +21,7 @@ use super::mouse::{
 };
 use super::rng::SmallRng;
 use super::ClickerConfig;
+#[cfg(target_os = "windows")]
 use super::NtSetTimerResolution;
 use super::RunOutcome;
 use super::SequenceTarget;
@@ -29,13 +31,16 @@ use super::CLICK_COUNT;
 // changed from normal cpu measurement because it was not accurately
 // showing cpu usage for short clicker run times.
 
+#[cfg(target_os = "windows")]
 windows_targets::link!(
     "kernel32.dll" "system" fn QueryThreadCycleTime(thread: *mut core::ffi::c_void, cycles: *mut u64) -> i32
 );
+#[cfg(target_os = "windows")]
 windows_targets::link!(
     "kernel32.dll" "system" fn GetCurrentThread() -> *mut core::ffi::c_void
 );
 
+#[cfg(target_os = "windows")]
 #[inline]
 fn thread_cycles() -> u64 {
     let mut cycles: u64 = 0;
@@ -43,6 +48,12 @@ fn thread_cycles() -> u64 {
         QueryThreadCycleTime(GetCurrentThread(), &mut cycles);
     }
     cycles
+}
+
+#[cfg(not(target_os = "windows"))]
+#[inline]
+fn thread_cycles() -> u64 {
+    0
 }
 
 impl ClickerConfig {
@@ -212,7 +223,10 @@ fn interval_secs_from_settings(settings: &ClickerSettings) -> Result<f64, String
 }
 
 fn system_double_click_gap_ms() -> u32 {
+    #[cfg(target_os = "windows")]
     let system_timeout_ms = unsafe { GetDoubleClickTime() };
+    #[cfg(not(target_os = "windows"))]
+    let system_timeout_ms = 500u32;
     ((system_timeout_ms as f64) * 0.9).floor() as u32
 }
 
@@ -401,8 +415,12 @@ fn plan_cycle_batch(
 pub fn start_clicker(config: ClickerConfig, control: RunControl) -> RunOutcome {
     CLICK_COUNT.store(0, Ordering::SeqCst);
 
+    #[cfg(target_os = "windows")]
     let mut current = 0u32;
-    unsafe { NtSetTimerResolution(10000, 1, &mut current) };
+    #[cfg(target_os = "windows")]
+    unsafe {
+        NtSetTimerResolution(10000, 1, &mut current)
+    };
 
     let cycle_freq = calibrate_cycle_freq();
     let cpu_cycles_start = thread_cycles();
@@ -626,7 +644,10 @@ pub fn start_clicker(config: ClickerConfig, control: RunControl) -> RunOutcome {
         }
     }
 
-    unsafe { NtSetTimerResolution(10000, 0, &mut current) };
+    #[cfg(target_os = "windows")]
+    unsafe {
+        NtSetTimerResolution(10000, 0, &mut current)
+    };
 
     let elapsed_secs = start_time.elapsed().as_secs_f64();
     let cpu_cycles_end = thread_cycles();

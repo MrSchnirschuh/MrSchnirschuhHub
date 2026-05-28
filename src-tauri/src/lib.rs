@@ -2,10 +2,12 @@ mod settings;
 use settings::ClickerSettings;
 mod app_state;
 mod autostart;
+#[cfg_attr(not(target_os = "windows"), path = "custom_stop_zone_picker_stub.rs")]
 mod custom_stop_zone_picker;
 mod engine;
 mod hotkeys;
 mod overlay;
+#[cfg_attr(not(target_os = "windows"), path = "sequence_picker_stub.rs")]
 mod sequence_picker;
 mod single_instance;
 mod ui_commands;

@@ -3,11 +3,13 @@ use super::worker::{sleep_interruptible, RunControl};
 use std::time::Duration;
 use std::time::Instant;
 
+#[cfg(target_os = "windows")]
 use windows_sys::Win32::UI::Input::KeyboardAndMouse::{
     SendInput, INPUT, INPUT_MOUSE, MOUSEEVENTF_ABSOLUTE, MOUSEEVENTF_LEFTDOWN, MOUSEEVENTF_LEFTUP,
     MOUSEEVENTF_MIDDLEDOWN, MOUSEEVENTF_MIDDLEUP, MOUSEEVENTF_MOVE, MOUSEEVENTF_RIGHTDOWN,
     MOUSEEVENTF_RIGHTUP, MOUSEEVENTF_VIRTUALDESK, MOUSEINPUT,
 };
+#[cfg(target_os = "windows")]
 use windows_sys::Win32::UI::WindowsAndMessaging::{
     GetSystemMetrics, SM_CXVIRTUALSCREEN, SM_CYVIRTUALSCREEN, SM_XVIRTUALSCREEN, SM_YVIRTUALSCREEN,
 };
@@ -68,6 +70,7 @@ impl VirtualScreenRect {
     }
 }
 
+#[cfg(target_os = "windows")]
 pub fn current_cursor_position() -> Option<(i32, i32)> {
     use windows_sys::Win32::Foundation::POINT;
     use windows_sys::Win32::UI::WindowsAndMessaging::GetCursorPos;
@@ -81,6 +84,12 @@ pub fn current_cursor_position() -> Option<(i32, i32)> {
     }
 }
 
+#[cfg(not(target_os = "windows"))]
+pub fn current_cursor_position() -> Option<(i32, i32)> {
+    None
+}
+
+#[cfg(target_os = "windows")]
 pub fn current_virtual_screen_rect() -> Option<VirtualScreenRect> {
     let left = unsafe { GetSystemMetrics(SM_XVIRTUALSCREEN) };
     let top = unsafe { GetSystemMetrics(SM_YVIRTUALSCREEN) };
@@ -91,6 +100,11 @@ pub fn current_virtual_screen_rect() -> Option<VirtualScreenRect> {
     }
 
     Some(VirtualScreenRect::new(left, top, width, height))
+}
+
+#[cfg(not(target_os = "windows"))]
+pub fn current_virtual_screen_rect() -> Option<VirtualScreenRect> {
+    None
 }
 
 #[cfg(target_os = "windows")]
@@ -151,6 +165,7 @@ pub fn get_cursor_pos() -> (i32, i32) {
     current_cursor_position().unwrap_or((0, 0))
 }
 
+#[cfg(target_os = "windows")]
 #[inline]
 pub fn move_mouse(target_x: i32, target_y: i32) {
     if let Some(screen_rect) = current_virtual_screen_rect() {
@@ -163,6 +178,11 @@ pub fn move_mouse(target_x: i32, target_y: i32) {
     }
 }
 
+#[cfg(not(target_os = "windows"))]
+#[inline]
+pub fn move_mouse(_target_x: i32, _target_y: i32) {}
+
+#[cfg(target_os = "windows")]
 #[inline]
 pub fn make_movement(end_x: i32, end_y: i32) -> INPUT {
     INPUT {
@@ -180,6 +200,7 @@ pub fn make_movement(end_x: i32, end_y: i32) -> INPUT {
     }
 }
 
+#[cfg(target_os = "windows")]
 #[inline]
 pub fn make_input(flags: u32, time: u32) -> INPUT {
     INPUT {
@@ -197,12 +218,14 @@ pub fn make_input(flags: u32, time: u32) -> INPUT {
     }
 }
 
+#[cfg(target_os = "windows")]
 #[inline]
 pub fn send_mouse_event(flags: u32) {
     let input = make_input(flags, 0);
     unsafe { SendInput(1, &input, std::mem::size_of::<INPUT>() as i32) };
 }
 
+#[cfg(target_os = "windows")]
 pub fn send_batch(down: u32, up: u32, n: usize) {
     let mut inputs: Vec<INPUT> = Vec::with_capacity(n * 2);
     for _ in 0..n {
@@ -218,6 +241,10 @@ pub fn send_batch(down: u32, up: u32, n: usize) {
     };
 }
 
+#[cfg(not(target_os = "windows"))]
+pub fn send_batch(_down: u32, _up: u32, _n: usize) {}
+
+#[cfg(target_os = "windows")]
 pub fn send_clicks(down: u32, up: u32, count: usize, plan: ClickCyclePlan, control: &RunControl) {
     if count == 0 {
         return;
@@ -244,6 +271,35 @@ pub fn send_clicks(down: u32, up: u32, count: usize, plan: ClickCyclePlan, contr
     }
 }
 
+#[cfg(not(target_os = "windows"))]
+pub fn send_clicks(
+    _down: u32,
+    _up: u32,
+    count: usize,
+    plan: ClickCyclePlan,
+    control: &RunControl,
+) {
+    if count == 0 {
+        return;
+    }
+
+    let is_active = || control.is_active();
+    let mut sleep_for = |duration| sleep_interruptible(duration, control);
+
+    for _ in 0..count {
+        if !execute_click_cycle(
+            plan,
+            &mut || {},
+            &mut || {},
+            &mut sleep_for,
+            &is_active,
+        ) {
+            return;
+        }
+    }
+}
+
+#[cfg(target_os = "windows")]
 #[inline]
 pub fn get_button_flags(button: i32) -> (u32, u32) {
     match button {
@@ -251,6 +307,12 @@ pub fn get_button_flags(button: i32) -> (u32, u32) {
         3 => (MOUSEEVENTF_MIDDLEDOWN, MOUSEEVENTF_MIDDLEUP),
         _ => (MOUSEEVENTF_LEFTDOWN, MOUSEEVENTF_LEFTUP),
     }
+}
+
+#[cfg(not(target_os = "windows"))]
+#[inline]
+pub fn get_button_flags(_button: i32) -> (u32, u32) {
+    (0, 0)
 }
 
 #[inline]
