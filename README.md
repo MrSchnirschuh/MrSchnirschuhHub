@@ -82,28 +82,43 @@ This project is currently Windows-first, but it can now also be run from source 
 Requirements:
 - Node.js 20 or newer
 - Rust via `rustup`
-- Microsoft C++ Build Tools / Visual Studio Build Tools
+- Microsoft C++ Build Tools / Visual Studio Build Tools (Windows builds only)
 
 If you run Rust checks on Linux (for example in a local dev shell), install GTK/GLib development packages first so `pkg-config` can resolve `glib-2.0` and `gobject-2.0`:
 
 - Debian/Ubuntu: `sudo apt install pkg-config libglib2.0-dev libgtk-3-dev libwebkit2gtk-4.1-dev libjavascriptcoregtk-4.1-dev libsoup-3.0-dev xdotool`
 - Fedora: `sudo dnf install pkgconf-pkg-config glib2-devel gtk3-devel webkit2gtk4.1-devel javascriptcoregtk4.1-devel libsoup3-devel xdotool`
-- Arch: `sudo pacman -S pkgconf glib2 gtk3 webkit2gtk libsoup xdotool`
+- Arch: `sudo pacman -S --needed pkgconf glib2 gtk3 webkit2gtk libsoup xdotool`
 
-Setup:
-```powershell
+Common setup:
+```bash
 git clone https://github.com/Blur009/Blur-AutoClicker.git
 cd Blur-AutoClicker
 npm install
+```
+
+Windows target setup:
+```powershell
 rustup default stable-x86_64-pc-windows-msvc
 ```
 
-Run the app in development:
-```powershell
+Linux native setup (no translation layer like Wine/Proton):
+```bash
+rustup default stable
+rustup target add x86_64-unknown-linux-gnu
+```
+
+Run the app in development (native):
+```bash
 npm run dev
 ```
 
-Build a release bundle:
+Build native Linux binaries:
+```bash
+cargo build --manifest-path src-tauri/Cargo.toml --release
+```
+
+Build a Windows release bundle:
 ```powershell
 npm run build
 ```
