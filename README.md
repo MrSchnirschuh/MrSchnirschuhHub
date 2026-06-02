@@ -69,6 +69,33 @@ Config and stats are stored in `%appdata%/BlurAutoClicker`.
 *Info: If you are on version 2.1.2 or below, delete the old executable (the installer will not delete it for you).
 The old Config and Stats files will unfortunately not be compatible with the new versions (3.0.0 and above), so they will be deleted upon launching the application.*
 
+### Arch Linux (from source)
+
+There is currently no packaged Linux installer in Releases. Use the source install flow:
+
+1. Install runtime + build dependencies:
+   ```bash
+   sudo pacman -S --needed base-devel git nodejs npm rustup pkgconf glib2 gtk3 webkit2gtk libsoup xdotool
+   rustup default stable
+   rustup target add x86_64-unknown-linux-gnu
+   ```
+2. Clone and install JavaScript dependencies:
+   ```bash
+   git clone https://github.com/Blur009/Blur-AutoClicker.git
+   cd Blur-AutoClicker
+   npm install
+   ```
+3. Run in development:
+   ```bash
+   npm run dev
+   ```
+4. Build a native Linux binary:
+   ```bash
+   cargo build --manifest-path src-tauri/Cargo.toml --release
+   ```
+
+`xdotool` is required for input automation on non-Windows targets.
+
 ### Windows trust / signing
 
 Unsigned GitHub-downloaded Windows installers can still show a SmartScreen warning. Tauri updater signing is separate from Windows Authenticode signing. See [docs/windows-release-trust.md](docs/windows-release-trust.md) for build commands, signature checks, and the release-trust checklist.
