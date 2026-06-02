@@ -314,13 +314,7 @@ pub fn send_clicks(down: u32, up: u32, count: usize, plan: ClickCyclePlan, contr
 }
 
 #[cfg(not(target_os = "windows"))]
-pub fn send_clicks(
-    down: u32,
-    up: u32,
-    count: usize,
-    plan: ClickCyclePlan,
-    control: &RunControl,
-) {
+pub fn send_clicks(down: u32, up: u32, count: usize, plan: ClickCyclePlan, control: &RunControl) {
     if count == 0 {
         return;
     }

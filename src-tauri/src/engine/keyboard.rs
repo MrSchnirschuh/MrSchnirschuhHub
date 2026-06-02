@@ -1,6 +1,6 @@
-use super::cycle::{execute_click_cycle, ClickCyclePlan};
 #[cfg(target_os = "windows")]
 use super::cycle::ClickCycleKind;
+use super::cycle::{execute_click_cycle, ClickCyclePlan};
 #[cfg(not(target_os = "windows"))]
 use std::process::Command;
 #[cfg(target_os = "windows")]
@@ -56,7 +56,9 @@ pub fn is_alphabetic_vk(vk: u16) -> bool {
 
 fn caps_lock_enabled() -> bool {
     #[cfg(target_os = "windows")]
-    unsafe { (GetKeyState(VK_CAPITAL as i32) & 1) != 0 }
+    unsafe {
+        (GetKeyState(VK_CAPITAL as i32) & 1) != 0
+    }
     #[cfg(not(target_os = "windows"))]
     {
         false
