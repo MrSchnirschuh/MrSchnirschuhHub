@@ -66,7 +66,7 @@
     "minimizeToTray": "In den System Tray minimieren",
     "minimizeToTrayDescription": "Wenn aktiviert, wird das Fenster beim Schließen in den System Tray minimiert, anstatt die App zu beenden.",
     "runOnStartup": "Beim Start ausführen",
-    "runOnStartupDescription": "Startet BlurAutoClicker automatisch mit Windows, im System Tray minimiert.",
+    "runOnStartupDescription": "Startet MrSchnirschuhHub automatisch mit Windows, im System Tray minimiert.",
     "sectionAppearance": "Erscheinungsbild",
     "sectionAppearanceDescription": "Design- und Akzentfarben-Einstellungen.",
     "theme": "Design",

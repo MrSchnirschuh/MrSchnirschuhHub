@@ -488,7 +488,7 @@ export default function SettingsPanel({
                 title="YouTube"
                 onClick={(e) => {
                   e.preventDefault();
-                  void openUrl("https://youtube.com/@Blur009");
+                  void openUrl("https://github.com/MrSchnirschuh/MrSchnirschuhHub");
                 }}
               >
                 <svg
@@ -524,7 +524,7 @@ export default function SettingsPanel({
                 title="GitHub"
                 onClick={(e) => {
                   e.preventDefault();
-                  void openUrl("https://github.com/Blur009/Blur-AutoClicker");
+                  void openUrl("https://github.com/MrSchnirschuh/MrSchnirschuhHub");
                 }}
               >
                 <svg

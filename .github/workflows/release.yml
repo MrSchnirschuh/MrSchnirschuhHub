@@ -9,55 +9,61 @@ permissions:
   contents: write
 
 jobs:
-  release:
-    name: Build and release
-    runs-on: windows-latest
-    timeout-minutes: 30
+  release-linux:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
 
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libwebkit2gtk-4.1-dev \
+            libxdo-dev \
+            libudev-dev \
+            libusb-1.0-0-dev \
+            libgtk-3-dev \
+            librsvg2-dev \
+            libjavascriptcoregtk-4.1-dev \
+            libsoup-3.0-dev \
+            libhidapi-hidraw0
+
+      - name: Setup node
+        uses: actions/setup-node@v4
         with:
-          node-version: 24
-          cache: npm
+          node-version: "22"
 
-      - uses: dtolnay/rust-toolchain@stable
+      - name: Install npm dependencies
+        run: npm ci
+
+      - name: Setup Rust
+        uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
-          targets: x86_64-pc-windows-msvc
+          toolchain: stable
 
-      - uses: Swatinem/rust-cache@v2
+      - name: Rust cache
+        uses: Swatinem/rust-cache@v2
         with:
-          workdir: src-tauri
+          workspaces: src-tauri
 
-      - name: Install dependencies
-        run: npm install
+      - name: Build Tauri deb
+        run: npm run frontend:build && cargo tauri build --bundles deb --manifest-path src-tauri/Cargo.toml
 
-      - name: Build
-        uses: tauri-apps/tauri-action@v0
+      - name: Package raw binary tarball
+        run: |
+          TAG="${GITHUB_REF_NAME#v}"
+          BINARY="src-tauri/target/release/mrschnirschuhhub"
+          tar czf "MrSchnirschuhHub-${TAG}-x86_64-linux.tar.gz" -C "$(dirname "$BINARY")" "$(basename "$BINARY")"
+
+      - name: Create GitHub Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
-          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
-        with:
-          tagName: ${{ github.ref_name }}
-          releaseName: BlurAutoClicker ${{ github.ref_name }}
-          releaseBody: See CHANGELOG for details.
-          releaseDraft: true
-
-      - name: Create portable zip
-        shell: pwsh
         run: |
-          $exe = Get-ChildItem -Path "src-tauri/target/release" -Filter "BlurAutoClicker.exe" | Select-Object -First 1
-          if (-not $exe) { Write-Error "BlurAutoClicker.exe not found"; exit 1 }
-          $tag = "${{ github.ref_name }}"
-          $zipName = "BlurAutoClicker-${tag}-portable.zip"
-          Compress-Archive -Path $exe.FullName -DestinationPath $zipName
-          echo "ZIP_PATH=$zipName" >> $env:GITHUB_ENV
-
-      - name: Upload portable zip to release
-        shell: pwsh
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh release upload "${{ github.ref_name }}" "$env:ZIP_PATH" --clobber
+          TAG="${{ github.ref_name }}"
+          gh release create "$TAG" \
+            --title "$TAG" \
+            --notes "Release $TAG — MrSchnirschuhHub" \
+            src-tauri/target/release/bundle/deb/*.deb \
+            MrSchnirschuhHub-*.tar.gz

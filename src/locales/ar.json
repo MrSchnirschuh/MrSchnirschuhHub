@@ -66,7 +66,7 @@
     "minimizeToTray": "تصغير إلى شريط المهام",
     "minimizeToTrayDescription": "عند التفعيل، يؤدي إغلاق النافذة إلى إخفائها في شريط النظام بدلاً من إنهاء التطبيق.",
     "runOnStartup": "التشغيل عند بدء التشغيل",
-    "runOnStartupDescription": "بدء تشغيل BlurAutoClicker تلقائياً مع Windows، مصغراً إلى شريط المهام.",
+    "runOnStartupDescription": "بدء تشغيل MrSchnirschuhHub تلقائياً مع Windows، مصغراً إلى شريط المهام.",
     "sectionAppearance": "المظهر",
     "sectionAppearanceDescription": "تفضيلات السمة ولون التمييز.",
     "theme": "السمة",
