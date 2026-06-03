@@ -18,6 +18,7 @@ pub struct HotkeyBinding {
     pub key_token: String,
 }
 
+/// Register the hotkey with tauri-plugin-global-shortcut (Wayland-compatible).
 pub fn register_hotkey_inner(app: &AppHandle, hotkey: String) -> Result<String, String> {
     let binding = parse_hotkey_binding(&hotkey)?;
     let state = app.state::<ClickerState>();
@@ -29,7 +30,77 @@ pub fn register_hotkey_inner(app: &AppHandle, hotkey: String) -> Result<String, 
         .store(true, Ordering::SeqCst);
     *state.registered_hotkey.lock().unwrap() = Some(binding.clone());
 
+    // Register via tauri-plugin-global-shortcut (Wayland-compatible)
+    let shortcut = format_hotkey_for_global_shortcut(&binding);
+    use tauri_plugin_global_shortcut::GlobalShortcutExt;
+    use tauri_plugin_global_shortcut::ShortcutState;
+
+    let app_handle = app.app_handle();
+    // Unregister all previous shortcuts first
+    let _ = app_handle.global_shortcut().unregister_all();
+
+    // Register the new shortcut with a handler
+    let s = shortcut.clone();
+    let _ = app_handle.global_shortcut().on_shortcut(s.as_str(), move |h, _s, ev| {
+        if ev.state == ShortcutState::Pressed {
+            handle_hotkey_pressed(h);
+        } else if ev.state == ShortcutState::Released {
+            handle_hotkey_released(h);
+        }
+    });
+
     Ok(format_hotkey_binding(&binding))
+}
+
+/// Convert our HotkeyBinding to the accelerator string tauri-plugin-global-shortcut expects.
+fn format_hotkey_for_global_shortcut(binding: &HotkeyBinding) -> String {
+    let mut parts: Vec<String> = Vec::new();
+    if binding.ctrl {
+        parts.push(String::from("CommandOrControl"));
+    }
+    if binding.alt {
+        parts.push(String::from("Alt"));
+    }
+    if binding.shift {
+        parts.push(String::from("Shift"));
+    }
+    if binding.super_key {
+        parts.push(String::from("Super"));
+    }
+
+    // Map vk to accelerator key name
+    parts.push(vk_to_accelerator(binding.main_vk));
+    parts.join("+")
+}
+
+fn vk_to_accelerator(vk: i32) -> String {
+    match vk {
+        0x41..=0x5A => ((vk as u8) as char).to_string(), // A-Z
+        0x30..=0x39 => ((vk as u8) as char).to_string(), // 0-9
+        0x20 => "Space".into(),
+        0x0D => "Return".into(),
+        0x09 => "Tab".into(),
+        0x08 => "Backspace".into(),
+        0x2E => "Delete".into(),
+        0x1B => "Escape".into(),
+        0x26 => "Up".into(),
+        0x28 => "Down".into(),
+        0x25 => "Left".into(),
+        0x27 => "Right".into(),
+        0x70 => "F1".into(),
+        0x71 => "F2".into(),
+        0x72 => "F3".into(),
+        0x73 => "F4".into(),
+        0x74 => "F5".into(),
+        0x75 => "F6".into(),
+        0x76 => "F7".into(),
+        0x77 => "F8".into(),
+        0x78 => "F9".into(),
+        0x79 => "F10".into(),
+        0x7A => "F11".into(),
+        0x7B => "F12".into(),
+        _ => format!("Key{}", vk),
+    }
 }
 
 pub fn normalize_hotkey(value: &str) -> String {
@@ -147,88 +218,20 @@ pub fn format_hotkey_binding(binding: &HotkeyBinding) -> String {
     parts.join("+")
 }
 
-/// Polling-based hotkey listener (Linux compatible)
-/// Uses xdotool to check modifier keys via GetAsyncKeyState equivalent
-pub fn start_hotkey_listener(app: AppHandle) {
-    std::thread::spawn(move || {
-        let mut was_pressed = false;
-
-        loop {
-            let (binding, strict) = {
-                let state = app.state::<ClickerState>();
-                let binding = state.registered_hotkey.lock().unwrap().clone();
-                let strict = state.settings.lock().unwrap().strict_hotkey_modifiers;
-                (binding, strict)
-            };
-
-            let currently_pressed = binding
-                .as_ref()
-                .map(|binding| is_hotkey_binding_pressed(binding, strict))
-                .unwrap_or(false);
-
-            let suppress_until = app
-                .state::<ClickerState>()
-                .suppress_hotkey_until_ms
-                .load(Ordering::SeqCst);
-            let suppress_until_release = app
-                .state::<ClickerState>()
-                .suppress_hotkey_until_release
-                .load(Ordering::SeqCst);
-            let hotkey_capture_active = app
-                .state::<ClickerState>()
-                .hotkey_capture_active
-                .load(Ordering::SeqCst);
-            let sequence_pick_active = app
-                .state::<ClickerState>()
-                .sequence_pick_active
-                .load(Ordering::SeqCst);
-            let custom_stop_zone_pick_active = app
-                .state::<ClickerState>()
-                .custom_stop_zone_pick_active
-                .load(Ordering::SeqCst);
-
-            if hotkey_capture_active || sequence_pick_active || custom_stop_zone_pick_active {
-                was_pressed = currently_pressed;
-                std::thread::sleep(Duration::from_millis(12));
-                continue;
-            }
-
-            if suppress_until_release {
-                if currently_pressed {
-                    was_pressed = true;
-                    std::thread::sleep(Duration::from_millis(12));
-                    continue;
-                }
-
-                app.state::<ClickerState>()
-                    .suppress_hotkey_until_release
-                    .store(false, Ordering::SeqCst);
-                was_pressed = false;
-                std::thread::sleep(Duration::from_millis(12));
-                continue;
-            }
-
-            if now_epoch_ms() < suppress_until {
-                was_pressed = currently_pressed;
-                std::thread::sleep(Duration::from_millis(12));
-                continue;
-            }
-
-            if currently_pressed && !was_pressed {
-                handle_hotkey_pressed(&app);
-            } else if !currently_pressed && was_pressed {
-                handle_hotkey_released(&app);
-            }
-
-            was_pressed = currently_pressed;
-            std::thread::sleep(Duration::from_millis(12));
-        }
-    });
+/// Global shortcut handler setup (using tauri-plugin-global-shortcut).
+/// The actual shortcut + handler registration happens in register_hotkey_inner.
+/// This function does nothing now — kept for compatibility.
+pub fn start_hotkey_listener(_app: AppHandle) {
+    // Handled entirely via tauri-plugin-global-shortcut now.
 }
 
 pub fn handle_hotkey_pressed(app: &AppHandle) {
     let mode = {
         let state = app.state::<ClickerState>();
+        let suppress = state.suppress_hotkey_until_ms.load(Ordering::SeqCst);
+        if now_epoch_ms() < suppress {
+            return;
+        }
         let mode = state.settings.lock().unwrap().mode.clone();
         mode
     };
@@ -252,107 +255,34 @@ pub fn handle_hotkey_released(app: &AppHandle) {
     }
 }
 
-pub fn is_hotkey_binding_pressed(binding: &HotkeyBinding, strict: bool) -> bool {
-    let ctrl_down = is_vk_down(crate::engine::keyboard::VK_CONTROL as i32);
-    let alt_down = is_vk_down(crate::engine::keyboard::VK_MENU as i32);
-    let shift_down = is_vk_down(crate::engine::keyboard::VK_SHIFT as i32);
-    let super_down = is_vk_down(crate::engine::keyboard::VK_LWIN as i32)
-        || is_vk_down(crate::engine::keyboard::VK_RWIN as i32);
+// ---------------------------------------------------------------------------
+// Legacy xdotool-based key state queries (kept for mouse position fallback).
+// Not used for hotkey detection anymore — only for failsafe mouse position.
+// ---------------------------------------------------------------------------
 
-    if !modifiers_match(binding, ctrl_down, alt_down, shift_down, super_down, strict) {
-        return false;
-    }
-
-    is_vk_down(binding.main_vk)
+/// Check if a key is pressed (used only for failsafe position queries now).
+pub fn is_vk_down(_vk: i32) -> bool {
+    // We can't reliably poll keys on Wayland. Return false, and rely on
+    // the global-shortcut plugin for hotkey detection.
+    false
 }
 
-fn modifiers_match(
-    binding: &HotkeyBinding,
-    ctrl_down: bool,
-    alt_down: bool,
-    shift_down: bool,
-    super_down: bool,
-    strict: bool,
-) -> bool {
-    if binding.ctrl && !ctrl_down {
-        return false;
-    }
-    if binding.alt && !alt_down {
-        return false;
-    }
-    if binding.shift && !shift_down {
-        return false;
-    }
-    if binding.super_key && !super_down {
-        return false;
-    }
-
-    if strict {
-        if ctrl_down && !binding.ctrl {
-            return false;
-        }
-        if alt_down && !binding.alt {
-            return false;
-        }
-        if shift_down && !binding.shift {
-            return false;
-        }
-        if super_down && !binding.super_key {
-            return false;
-        }
-    }
-
-    true
-}
-
-/// Check if a key is pressed via xdotool key state query.
-/// Works on both X11 and Wayland (via xdotool fallback).
-/// Maps VK codes to X11 key names.
-pub fn is_vk_down(vk: i32) -> bool {
-    let key_name = vk_to_xkeysym(vk);
-    if key_name.is_empty() {
-        return false;
-    }
-
-    let output = std::process::Command::new("xdotool")
-        .args(["getactivewindow", "getwindowfocus"])
-        .output()
-        .ok();
-
-    // Fall back to checking via xinput / xev approach
-    // Use xdotool key state query
-    let output = std::process::Command::new("xdotool")
-        .args(["keydown", &key_name])
-        .output()
-        .ok();
-
-    if let Some(out) = output {
-        // If keydown succeeds without error, the key was already down
-        // This is a hack — xdotool keydown on a held key returns success
-        // On newer xdotool, use query_state
-        let stderr = String::from_utf8_lossy(&out.stderr);
-        stderr.contains("already")
-    } else {
-        false
-    }
-}
-
-/// Map our pseudo-VK codes to X11 keysym names for xdotool
-fn vk_to_xkeysym(vk: i32) -> &'static str {
+/// Map our pseudo-VK codes to X11 keysym names (kept for mouse position via xdotool).
+pub fn vk_to_xkeysym(vk: i32) -> &'static str {
     match vk {
-        0x11 => "Control_L",      // VK_CONTROL
-        0x12 => "Alt_L",          // VK_MENU
-        0x10 => "Shift_L",        // VK_SHIFT
-        0x5B => "Super_L",        // VK_LWIN
-        0x5C => "Super_R",        // VK_RWIN
-        0x41..=0x5A => {          // A-Z
+        0x11 => "Control_L",
+        0x12 => "Alt_L",
+        0x10 => "Shift_L",
+        0x5B => "Super_L",
+        0x5C => "Super_R",
+        0x41..=0x5A => {
             let idx = (vk - 0x41) as usize;
-            ["A","B","C","D","E","F","G","H","I","J","K","L","M",
-             "N","O","P","Q","R","S","T","U","V","W","X","Y","Z"][idx]
+            ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M",
+             "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"][idx]
         }
-        0x30..=0x39 => {          // 0-9
+        0x30..=0x39 => {
             let idx = (vk - 0x30) as usize;
-            ["0","1","2","3","4","5","6","7","8","9"][idx]
+            ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"][idx]
         }
         0x20 => "space",
         0x0D => "Return",
