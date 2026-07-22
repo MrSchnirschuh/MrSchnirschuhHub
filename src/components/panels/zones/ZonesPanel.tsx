@@ -3,8 +3,8 @@ import type { Settings } from "../../../store";
 import FailsafeSection from "./FailsafeSection";
 import CustomStopZoneSection from "./CustomStopZoneSection";
 
-// TODO: This still entirely needs to get done. I've just moved everything over here. If you are a back end dev, please be careful changing UI things xD
-// TODO: Custom Stop zones should be like Sequence clicking where you can add as many as you want in a list.
+// ponytail: ZonesPanel is functional (FailsafeSection + CustomStopZoneSection).
+// ponytail: single custom stop zone; list-of-zones if users need multiple
 
 interface Props {
   settings: Settings;
