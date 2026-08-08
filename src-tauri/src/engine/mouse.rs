@@ -70,7 +70,7 @@ pub fn current_virtual_screen_rect() -> Option<VirtualScreenRect> {
         .output()
         .ok()?;
     let stdout = String::from_utf8(output.stdout).ok()?;
-    let parts: Vec<&str> = stdout.trim().split_whitespace().collect();
+    let parts: Vec<&str> = stdout.split_whitespace().collect();
     if parts.len() >= 2 {
         let w: i32 = parts[0].parse().unwrap_or(1920);
         let h: i32 = parts[1].parse().unwrap_or(1080);
@@ -138,17 +138,6 @@ fn press_button_up(button: i32) {
     with_enigo(|enigo| {
         let _ = enigo.button(btn, Direction::Release);
     });
-}
-
-#[inline]
-pub fn get_button_flags(button: i32) -> (i32, i32) {
-    // We still use the same interface: down_flag, up_flag
-    // but on Linux we route through enigo's button system.
-    (button, button)
-}
-
-pub fn send_mouse_event(button: i32) {
-    press_button(button);
 }
 
 pub fn send_batch(button: i32, n: usize) {

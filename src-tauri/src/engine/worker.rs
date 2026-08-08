@@ -15,7 +15,7 @@ use super::cycle::ClickCyclePlan;
 use super::failsafe::should_stop_for_failsafe;
 use super::keyboard::{is_alphabetic_vk, send_key_presses};
 use super::mouse::{
-    get_button_flags, get_cursor_pos, move_mouse, send_clicks, smooth_move, VirtualScreenRect,
+    get_cursor_pos, move_mouse, send_clicks, smooth_move, VirtualScreenRect,
 };
 use super::rng::SmallRng;
 use super::ClickerConfig;
@@ -24,7 +24,6 @@ use super::SequenceTarget;
 use super::CLICK_COUNT;
 
 // -- CPU measurement --
-use std::time::Instant as CpuInstant;
 
 #[inline]
 fn calibrate_cycle_freq() -> f64 {
@@ -367,7 +366,7 @@ fn plan_cycle_batch(
 pub fn start_clicker(config: ClickerConfig, control: RunControl) -> RunOutcome {
     CLICK_COUNT.store(0, Ordering::SeqCst);
 
-    let cycle_freq = calibrate_cycle_freq();
+    let _cycle_freq = calibrate_cycle_freq();
     let start_time = Instant::now();
 
     let mut rng = SmallRng::new();
