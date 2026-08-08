@@ -5,6 +5,7 @@ on:
     branches: [main, linux-rewrite, develop]
   pull_request:
     branches: [main, linux-rewrite, develop]
+  workflow_dispatch:
 
 jobs:
   check:

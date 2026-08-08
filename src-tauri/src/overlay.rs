@@ -1,13 +1,11 @@
 /// Linux stub: overlay is skipped on Linux where native hooks aren't easily available.
 /// The Tauri overlay HTML window still renders, but we skip the Win32 hook setup.
-use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::atomic::Ordering;
 use std::sync::Mutex;
 use std::time::Instant;
-use tauri::{AppHandle, Emitter, Manager};
+use tauri::{AppHandle, Manager};
 
 static LAST_ZONE_SHOW: Mutex<Option<Instant>> = Mutex::new(None);
-static SEQUENCE_PICK_OVERLAY_ACTIVE: AtomicBool = AtomicBool::new(false);
-static CUSTOM_STOP_ZONE_PICK_OVERLAY_ACTIVE: AtomicBool = AtomicBool::new(false);
 pub static OVERLAY_THREAD_RUNNING: std::sync::atomic::AtomicBool =
     std::sync::atomic::AtomicBool::new(true);
 

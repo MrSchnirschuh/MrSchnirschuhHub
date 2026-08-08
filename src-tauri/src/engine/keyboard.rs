@@ -94,22 +94,5 @@ fn vk_to_char(vk: u16) -> Option<char> {
     }
 }
 
-/// Helper: map some common named keys to VK codes for the hotkey system.
-/// This mirrors the Windows Virtual-Key codes for cross-platform compatibility.
-pub const VK_SPACE: u16 = 0x20;
-pub const VK_RETURN: u16 = 0x0D;
-pub const VK_TAB: u16 = 0x09;
-pub const VK_BACK: u16 = 0x08;
-pub const VK_DELETE: u16 = 0x2E;
-pub const VK_ESCAPE: u16 = 0x1B;
-pub const VK_UP: u16 = 0x26;
-pub const VK_DOWN: u16 = 0x28;
-pub const VK_LEFT: u16 = 0x25;
-pub const VK_RIGHT: u16 = 0x27;
-pub const VK_SHIFT: u16 = 0x10;
-pub const VK_CONTROL: u16 = 0x11;
-pub const VK_MENU: u16 = 0x12; // Alt
-pub const VK_CAPITAL: u16 = 0x14;
-pub const VK_LWIN: u16 = 0x5B;
-pub const VK_RWIN: u16 = 0x5C;
-pub const VK_F1: u16 = 0x70;
+// ponytail: VK constants removed — the Linux/wayland rewrite routes hotkey
+// parsing through the global-shortcut plugin, which doesn't use these codes.

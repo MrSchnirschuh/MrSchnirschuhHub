@@ -1,6 +1,5 @@
-use super::device::{BatteryStatus, DeviceCapabilities, DPISettings, LightingSettings, RGBColor};
+use super::device::{BatteryStatus, DeviceCapabilities, LightingSettings};
 use super::hid::{self, discover_features, send_feature_request, HIDDeviceInfo};
-use crate::logitech::hid::FEATURE_ADJUSTABLE_DPI;
 
 pub const G502_LIGHTSPEED_PID: u16 = 0x407F;
 pub const G502_LIGHTSPEED_WIRED_PID: u16 = 0x407E;

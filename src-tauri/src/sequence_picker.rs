@@ -1,9 +1,5 @@
-/// Linux stub: sequence point picking uses Win32 hooks which aren't available on Linux.
-/// We provide a no-op implementation.
-use std::sync::{Mutex, OnceLock};
-use tauri::{AppHandle, Emitter, Manager};
+use tauri::{AppHandle, Manager};
 
-use crate::engine::mouse::current_virtual_screen_rect;
 
 pub fn start_sequence_point_pick_inner(app: AppHandle) -> Result<(), String> {
     // On Linux, we can't use global mouse hooks easily.

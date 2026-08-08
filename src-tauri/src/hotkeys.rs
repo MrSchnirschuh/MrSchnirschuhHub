@@ -5,7 +5,6 @@ use crate::engine::worker::toggle_clicker_inner;
 use crate::AppHandle;
 use crate::ClickerState;
 use std::sync::atomic::Ordering;
-use std::time::Duration;
 use tauri::Manager;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -256,60 +255,6 @@ pub fn handle_hotkey_released(app: &AppHandle) {
 }
 
 // ---------------------------------------------------------------------------
-// Legacy xdotool-based key state queries (kept for mouse position fallback).
-// Not used for hotkey detection anymore — only for failsafe mouse position.
-// ---------------------------------------------------------------------------
-
-/// Check if a key is pressed (used only for failsafe position queries now).
-pub fn is_vk_down(_vk: i32) -> bool {
-    // We can't reliably poll keys on Wayland. Return false, and rely on
-    // the global-shortcut plugin for hotkey detection.
-    false
-}
-
-/// Map our pseudo-VK codes to X11 keysym names (kept for mouse position via xdotool).
-pub fn vk_to_xkeysym(vk: i32) -> &'static str {
-    match vk {
-        0x11 => "Control_L",
-        0x12 => "Alt_L",
-        0x10 => "Shift_L",
-        0x5B => "Super_L",
-        0x5C => "Super_R",
-        0x41..=0x5A => {
-            let idx = (vk - 0x41) as usize;
-            ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M",
-             "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"][idx]
-        }
-        0x30..=0x39 => {
-            let idx = (vk - 0x30) as usize;
-            ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"][idx]
-        }
-        0x20 => "space",
-        0x0D => "Return",
-        0x09 => "Tab",
-        0x08 => "BackSpace",
-        0x2E => "Delete",
-        0x1B => "Escape",
-        0x26 => "Up",
-        0x28 => "Down",
-        0x25 => "Left",
-        0x27 => "Right",
-        0x70 => "F1",
-        0x71 => "F2",
-        0x72 => "F3",
-        0x73 => "F4",
-        0x74 => "F5",
-        0x75 => "F6",
-        0x76 => "F7",
-        0x77 => "F8",
-        0x78 => "F9",
-        0x79 => "F10",
-        0x7A => "F11",
-        0x7B => "F12",
-        _ => "",
-    }
-}
-
 fn normalize_modifier_token(token: &str) -> Option<&'static str> {
     match token {
         "alt" | "option" => Some("alt"),
