@@ -41,7 +41,10 @@ pub fn scan_devices(_app: AppHandle) -> Result<Vec<LogitechDeviceInfo>, String> 
 
         result.push(LogitechDeviceInfo {
             descriptor: DeviceDescriptor {
-                device_id: format!("{:04x}:{:04x}:{}", device.vendor_id, device.product_id, device.serial_number),
+                device_id: format!(
+                    "{:04x}:{:04x}:{}",
+                    device.vendor_id, device.product_id, device.serial_number
+                ),
                 product: device.product.clone(),
                 vendor_id: device.vendor_id,
                 product_id: device.product_id,
@@ -62,7 +65,10 @@ pub fn get_device_info(device_id: String) -> Result<LogitechDeviceInfo, String> 
     let device = store
         .iter()
         .find(|d| {
-            format!("{:04x}:{:04x}:{}", d.vendor_id, d.product_id, d.serial_number) == device_id
+            format!(
+                "{:04x}:{:04x}:{}",
+                d.vendor_id, d.product_id, d.serial_number
+            ) == device_id
         })
         .ok_or("Device not found")?;
 
@@ -93,7 +99,10 @@ pub fn set_dpi(device_id: String, dpi: u32) -> Result<String, String> {
     let device = store
         .iter()
         .find(|d| {
-            format!("{:04x}:{:04x}:{}", d.vendor_id, d.product_id, d.serial_number) == device_id
+            format!(
+                "{:04x}:{:04x}:{}",
+                d.vendor_id, d.product_id, d.serial_number
+            ) == device_id
         })
         .ok_or("Device not found")?;
 
@@ -107,7 +116,10 @@ pub fn get_battery(device_id: String) -> Result<BatteryStatus, String> {
     let device = store
         .iter()
         .find(|d| {
-            format!("{:04x}:{:04x}:{}", d.vendor_id, d.product_id, d.serial_number) == device_id
+            format!(
+                "{:04x}:{:04x}:{}",
+                d.vendor_id, d.product_id, d.serial_number
+            ) == device_id
         })
         .ok_or("Device not found")?;
 
@@ -120,7 +132,10 @@ pub fn set_lighting(device_id: String, settings: LightingSettings) -> Result<Str
     let device = store
         .iter()
         .find(|d| {
-            format!("{:04x}:{:04x}:{}", d.vendor_id, d.product_id, d.serial_number) == device_id
+            format!(
+                "{:04x}:{:04x}:{}",
+                d.vendor_id, d.product_id, d.serial_number
+            ) == device_id
         })
         .ok_or("Device not found")?;
 
@@ -134,7 +149,10 @@ pub fn set_report_rate(device_id: String, rate: u32) -> Result<String, String> {
     let device = store
         .iter()
         .find(|d| {
-            format!("{:04x}:{:04x}:{}", d.vendor_id, d.product_id, d.serial_number) == device_id
+            format!(
+                "{:04x}:{:04x}:{}",
+                d.vendor_id, d.product_id, d.serial_number
+            ) == device_id
         })
         .ok_or("Device not found")?;
 

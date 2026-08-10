@@ -1,6 +1,5 @@
 use tauri::{AppHandle, Manager};
 
-
 pub fn start_custom_stop_zone_pick_inner(app: AppHandle) -> Result<(), String> {
     log::info!("[StopZonePicker] Interactive picking not available on Linux; use settings panel.");
     app.state::<crate::ClickerState>()

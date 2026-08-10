@@ -68,7 +68,10 @@ pub fn enumerate_logitech_devices() -> Result<Vec<HIDDeviceInfo>, HIDError> {
             vendor_id: d.vendor_id(),
             product_id: d.product_id(),
             serial_number: d.serial_number().unwrap_or("").to_string(),
-            product: d.product_string().unwrap_or("Unknown Logitech Device").to_string(),
+            product: d
+                .product_string()
+                .unwrap_or("Unknown Logitech Device")
+                .to_string(),
             path: d.path().to_bytes_with_nul().to_vec(),
             interface_number: d.interface_number(),
         })
@@ -82,7 +85,8 @@ pub fn open_device(path: &[u8]) -> Result<hidapi::HidDevice, HIDError> {
     use std::ffi::CStr;
     let guard = ensure_hid_api()?;
     let api = guard.as_ref().unwrap();
-    let cstr = CStr::from_bytes_with_nul(path).map_err(|e| HIDError(format!("Invalid path: {}", e)))?;
+    let cstr =
+        CStr::from_bytes_with_nul(path).map_err(|e| HIDError(format!("Invalid path: {}", e)))?;
     api.open_path(cstr).map_err(|e| HIDError(e.to_string()))
 }
 
@@ -98,7 +102,11 @@ pub fn send_feature_request(
     } else {
         HIDPP_SHORT_MESSAGE
     };
-    let msg_len = if msg_type == HIDPP_LONG_MESSAGE { 20 } else { 7 };
+    let msg_len = if msg_type == HIDPP_LONG_MESSAGE {
+        20
+    } else {
+        7
+    };
 
     let mut message = vec![0u8; msg_len];
     message[0] = msg_type;

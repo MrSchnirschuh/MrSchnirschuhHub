@@ -25,8 +25,10 @@ pub fn probe_device(info: &HIDDeviceInfo) -> Result<DeviceCapabilities, String> 
     }
 
     // Open device and discover HID++ features
-    let device = hid::open_device(&info.path).map_err(|e| format!("Failed to open device: {}", e))?;
-    let features = discover_features(&device).map_err(|e| format!("Feature discovery failed: {}", e))?;
+    let device =
+        hid::open_device(&info.path).map_err(|e| format!("Failed to open device: {}", e))?;
+    let features =
+        discover_features(&device).map_err(|e| format!("Feature discovery failed: {}", e))?;
 
     Ok(DeviceCapabilities {
         has_dpi: features.contains_key(&crate::logitech::hid::FEATURE_ADJUSTABLE_DPI),
@@ -34,7 +36,8 @@ pub fn probe_device(info: &HIDDeviceInfo) -> Result<DeviceCapabilities, String> 
         has_battery: features.contains_key(&crate::logitech::hid::FEATURE_BATTERY_STATUS)
             || features.contains_key(&crate::logitech::hid::FEATURE_UNIFIED_BATTERY),
         has_report_rate: features.contains_key(&crate::logitech::hid::FEATURE_REPORT_RATE),
-        has_onboard_profiles: features.contains_key(&crate::logitech::hid::FEATURE_ONBOARD_PROFILES),
+        has_onboard_profiles: features
+            .contains_key(&crate::logitech::hid::FEATURE_ONBOARD_PROFILES),
     })
 }
 
@@ -138,7 +141,10 @@ pub fn set_lighting(info: &HIDDeviceInfo, settings: &LightingSettings) -> Result
 pub fn set_report_rate(info: &HIDDeviceInfo, rate: u32) -> Result<(), String> {
     let valid_rates = [125, 250, 500, 1000];
     if !valid_rates.contains(&rate) {
-        return Err(format!("Invalid report rate: {}. Use 125, 250, 500, or 1000", rate));
+        return Err(format!(
+            "Invalid report rate: {}. Use 125, 250, 500, or 1000",
+            rate
+        ));
     }
 
     let device = hid::open_device(&info.path).map_err(|e| format!("Open: {}", e))?;

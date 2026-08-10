@@ -14,9 +14,7 @@ use crate::STATUS_EVENT;
 use super::cycle::ClickCyclePlan;
 use super::failsafe::should_stop_for_failsafe;
 use super::keyboard::{is_alphabetic_vk, send_key_presses};
-use super::mouse::{
-    get_cursor_pos, move_mouse, send_clicks, smooth_move, VirtualScreenRect,
-};
+use super::mouse::{get_cursor_pos, move_mouse, send_clicks, smooth_move, VirtualScreenRect};
 use super::rng::SmallRng;
 use super::ClickerConfig;
 use super::RunOutcome;
@@ -203,7 +201,8 @@ pub fn build_config(settings: &ClickerSettings) -> Result<ClickerConfig, String>
 
     let is_keyboard = settings.input_type == "keyboard";
     let key_code = if is_keyboard && !settings.keyboard_key.is_empty() {
-        match crate::hotkeys::parse_hotkey_main_key(&settings.keyboard_key, &settings.keyboard_key) {
+        match crate::hotkeys::parse_hotkey_main_key(&settings.keyboard_key, &settings.keyboard_key)
+        {
             Ok((vk, _)) => vk as u16,
             Err(_) => return Err(format!("Unknown keyboard key: '{}'", settings.keyboard_key)),
         }

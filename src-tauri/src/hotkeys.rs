@@ -40,13 +40,15 @@ pub fn register_hotkey_inner(app: &AppHandle, hotkey: String) -> Result<String, 
 
     // Register the new shortcut with a handler
     let s = shortcut.clone();
-    let _ = app_handle.global_shortcut().on_shortcut(s.as_str(), move |h, _s, ev| {
-        if ev.state == ShortcutState::Pressed {
-            handle_hotkey_pressed(h);
-        } else if ev.state == ShortcutState::Released {
-            handle_hotkey_released(h);
-        }
-    });
+    let _ = app_handle
+        .global_shortcut()
+        .on_shortcut(s.as_str(), move |h, _s, ev| {
+            if ev.state == ShortcutState::Pressed {
+                handle_hotkey_pressed(h);
+            } else if ev.state == ShortcutState::Released {
+                handle_hotkey_released(h);
+            }
+        });
 
     Ok(format_hotkey_binding(&binding))
 }

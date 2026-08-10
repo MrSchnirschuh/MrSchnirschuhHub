@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BatteryStatus {
-    pub level: u8,    // 0-100
+    pub level: u8, // 0-100
     pub charging: bool,
     pub voltage: Option<f32>,
 }

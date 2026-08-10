@@ -15,7 +15,12 @@ pub struct VirtualScreenRect {
 impl VirtualScreenRect {
     #[inline]
     pub fn new(left: i32, top: i32, width: i32, height: i32) -> Self {
-        Self { left, top, width, height }
+        Self {
+            left,
+            top,
+            width,
+            height,
+        }
     }
 
     #[inline]
@@ -146,12 +151,7 @@ pub fn send_batch(button: i32, n: usize) {
     }
 }
 
-pub fn send_clicks(
-    button: i32,
-    count: usize,
-    plan: ClickCyclePlan,
-    control: &RunControl,
-) {
+pub fn send_clicks(button: i32, count: usize, plan: ClickCyclePlan, control: &RunControl) {
     if count == 0 {
         return;
     }

@@ -1,6 +1,5 @@
 use tauri::{AppHandle, Manager};
 
-
 pub fn start_sequence_point_pick_inner(app: AppHandle) -> Result<(), String> {
     // On Linux, we can't use global mouse hooks easily.
     // For now, stub as no-op — the feature works via the clicker engine's
