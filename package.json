@@ -10,7 +10,8 @@
     "frontend:build": "tsc -b && vite build",
     "tauri": "tauri",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "cargo test --manifest-path src-tauri/Cargo.toml"
   },
   "dependencies": {
     "@tauri-apps/api": "~2.10.1",
