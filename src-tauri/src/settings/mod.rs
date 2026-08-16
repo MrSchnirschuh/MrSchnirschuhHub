@@ -165,3 +165,32 @@ impl Default for ClickerSettings {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn settings_defaults() {
+        let s = ClickerSettings::default();
+        assert_eq!(s.version, 10);
+        assert_eq!(s.click_speed, 25.0);
+        assert_eq!(s.mouse_button, "Left");
+        assert_eq!(s.mode, "Toggle");
+        assert_eq!(s.keyboard_key_case, "lower");
+        assert_eq!(s.custom_stop_zone_width, 100);
+        assert_eq!(s.custom_stop_zone_height, 100);
+    }
+
+    #[test]
+    fn settings_serde_roundtrip() {
+        let original = ClickerSettings::default();
+        let json = serde_json::to_string(&original).unwrap();
+        let parsed: ClickerSettings = serde_json::from_str(&json).unwrap();
+        assert_eq!(original.version, parsed.version);
+        assert_eq!(original.click_speed, parsed.click_speed);
+        assert_eq!(original.mouse_button, parsed.mouse_button);
+        assert_eq!(original.keyboard_key_case, parsed.keyboard_key_case);
+        assert_eq!(original.sequence_points.len(), parsed.sequence_points.len());
+    }
+}

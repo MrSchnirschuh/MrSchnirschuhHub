@@ -309,3 +309,34 @@ pub fn smooth_move(
 ) {
     smooth_move_inner(start_x, start_y, end_x, end_y, duration_ms, rng, true);
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn virtual_screen_rect_geometry() {
+        let rect = VirtualScreenRect::new(10, 20, 100, 50);
+        assert_eq!(rect.right(), 110);
+        assert_eq!(rect.bottom(), 70);
+        assert!(rect.contains(10, 20));
+        assert!(rect.contains(109, 69));
+        assert!(!rect.contains(9, 20));
+        assert!(!rect.contains(110, 20));
+        assert!(!rect.contains(10, 19));
+        assert!(!rect.contains(10, 70));
+    }
+
+    #[test]
+    fn ease_in_out_quad_bounds() {
+        assert_eq!(ease_in_out_quad(0.0), 0.0);
+        assert_eq!(ease_in_out_quad(1.0), 1.0);
+        assert!(ease_in_out_quad(0.25) < ease_in_out_quad(0.75));
+    }
+
+    #[test]
+    fn cubic_bezier_endpoints() {
+        assert_eq!(cubic_bezier(0.0, 1.0, 2.0, 3.0, 4.0), 1.0);
+        assert_eq!(cubic_bezier(1.0, 1.0, 2.0, 3.0, 4.0), 4.0);
+    }
+}
