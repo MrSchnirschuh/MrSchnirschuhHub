@@ -43,6 +43,16 @@ cd src-tauri && cargo build --release
 | Advanced Mode | Adjustable click timing, speed range, corner/edge stopping, click/set time limits, double clicks, position clicking, sequence mode |
 | Click Stats | Total clicks, clicks per second, run duration |
 
+## Development
+
+Use the `Makefile` for common tasks:
+
+```bash
+make test   # npm test (runs cargo test via package script)
+make lint   # npm run lint
+make format # npm run format
+```
+
 ## License
 
 GNU General Public License v3.0
