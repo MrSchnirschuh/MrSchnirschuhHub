@@ -1,10 +1,7 @@
-.PHONY: test lint format
+.PHONY: test lint
 
 test:
 	npm test
 
 lint:
 	npm run lint
-
-format:
-	npm run format
