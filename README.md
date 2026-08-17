@@ -48,7 +48,7 @@ cd src-tauri && cargo build --release
 Use the `Makefile` for common tasks:
 
 ```bash
-make test   # npm test (runs cargo test via package script)
+make test   # npm test: runs `cargo test` in `src-tauri`; no frontend tests currently exist
 make lint   # npm run lint
 make format # npm run format
 ```
