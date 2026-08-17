@@ -8,7 +8,7 @@
 
 ## Linux Rewrite
 
-This branch (`linux-rewrite`) is a complete port of Blur Auto Clicker from Windows to **Linux (Arch/Wayland)** with integrated **Logitech G502/G502X** device control.
+This branch (`main`) is a complete port of Blur Auto Clicker from Windows to **Linux (Arch/Wayland)** with integrated **Logitech G502/G502X** device control.
 
 **What's new:**
 - Ported to Tauri 2 + Rust backend for Linux (Wayland/X11 via `enigo`)
@@ -32,8 +32,10 @@ sudo pacman -S nodejs npm rust libwebkit2gtk-4.1 libhidapi xdotool libayatana-ap
 ### Build & Run
 ```bash
 npm install
-cd src-tauri && cargo build --release
+npm run build
 ```
+
+> Node.js ≥ 20 is required for Tauri 2.11 / Vite 6 / ESLint 9.
 
 ## Original Windows Features
 
