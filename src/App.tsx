@@ -603,11 +603,6 @@ export default function App() {
       try {
         const textScale = await invoke<number>("get_text_scale_factor");
         document.documentElement.style.fontSize = `${16 * textScale}px`;
-        console.log("Windows Text Scale:", textScale);
-        console.log(
-          "Actual Root Font Size:",
-          getComputedStyle(document.documentElement).fontSize,
-        );
 
         const preferredSize = getPanelSize(
           tab,
