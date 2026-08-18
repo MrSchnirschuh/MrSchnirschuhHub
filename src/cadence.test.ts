@@ -11,6 +11,10 @@ import {
 } from "./cadence";
 
 const baseDuration = {
+  clickSpeed: 1,
+  clickInterval: "s" as const,
+  rateInputMode: "duration" as const,
+
   durationHours: 1,
   durationMinutes: 2,
   durationSeconds: 3,
@@ -67,6 +71,6 @@ describe("cadence", () => {
 
   it("formats duration summary", () => {
     expect(formatDurationSummary(baseDuration)).toBe("1h 2m 3s 4ms");
-    expect(formatDurationSummary({ durationHours: 0, durationMinutes: 0, durationSeconds: 0, durationMilliseconds: 0 })).toBe("0ms");
+    expect(formatDurationSummary({ ...baseDuration, durationHours: 0, durationMinutes: 0, durationSeconds: 0, durationMilliseconds: 0 })).toBe("0ms");
   });
 });
