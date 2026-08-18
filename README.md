@@ -47,6 +47,8 @@ npm run build
 
 ## Development
 
+The frontend test suite uses Vitest with a `jsdom` environment (configured in `vitest.config.ts`).
+
 Use the `Makefile` for common tasks:
 
 ```bash
