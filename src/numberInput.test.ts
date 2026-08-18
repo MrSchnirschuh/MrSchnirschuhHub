@@ -17,4 +17,10 @@ describe("normalizeIntegerRaw", () => {
   it("returns zero as '0'", () => {
     expect(normalizeIntegerRaw("0")).toBe("0");
   });
+
+  it("returns empty string for empty input", () => {
+    expect(normalizeIntegerRaw("")).toBe("");
+  });
+
+
 });
